@@ -40,8 +40,10 @@
 			<div class="slides">
 				<section>
 					<h3 style="text-transform: none !important;">Metryki RED dla aplikacji REST<br /> z Prometheus + AlertManagera</h1>
-						
-					<small>Wojciech Barczyński (wojciech.barczynski@smacc.io)</small>
+
+					<img src="img/logo_prometheus.png" width="40%" />
+
+					<h6><small>Wojciech Barczyński (wojciech.barczynski@smacc.io)</small></h6>
 				</section>
 
 				<section>
@@ -79,13 +81,31 @@
 						<li>Like a debugging</li>
 					</ul>
 				</section>
+				
+				<section>
+					<h3>Monitoring</h3>
+					<ul>
+						<li>Liczby</li>
+						<li>Trendy</li>
+						<li>Zależności</li>
+					</ul>
+				</section>
+				
+				<section>
+					<h3>Monitoring</h3>
+					<img src="img/kubernetes-grafana-cluster-1024x503.png" width="80%" />
+					
+					<small>Example from <a href="https://blog.couchbase.com/wp-content/original-assets/december-2016/kubernetes-monitoring-with-heapster-influxdb-and-grafana/">couchbase blog</a></small>
+				</section>
 
 				<section>
-					<h3>How?</h3>
+					<h3>Jak znależć właściwe metryki?</h3>
+					<h5>
 						<ul>
 							<li>USE</li>
 							<li>RED</li>
 						</ul>
+					</h5>
 				</section>
 
 				<section data-markdown>
@@ -134,6 +154,17 @@
 <small>See http://www.brendangregg.com/usemethod.html</small>
 					</script>
 				</section>
+				
+		<section data-markdown>
+			<script type="text/template">
+				## USE
+						
+- **traditionaly** more instance oriented
+- still useful in the microservices world
+
+<small>See http://www.brendangregg.com/usemethod.html</small>
+					</script>
+				</section>
 
 				<section data-markdown><!-- workload -->
 					<script type="text/template">
@@ -143,18 +174,49 @@
 						- **e**rror (rate)
 						- **d**uration (distribution)
 
-<center><small>Service primary</small></center>
+<center><small>Service oriented</small></center>
 					</script>
 				</section>
+
+				<section data-markdown><!-- workload -->
+					<script type="text/template">
+						## RED
+
+						- **rate** - how many request per seconds handled
+						- **error**
+						- **duration** (distribution)
+					</script>
+				</section>
+
+				<section data-markdown><!-- workload -->
+					<script type="text/template">
+						## RED
+
+						- **rate** 
+						- **error** - how many request per seconds handled we failed
+						- **duration**
+					</script>
+				</section>
+
+				<section data-markdown><!-- workload -->
+					<script type="text/template">
+						## RED
+
+						- **rate** 
+						- **error**
+						- **duration** - how long the requests took
+					</script>
+				</section>
+
 				
-				<!-- https://landing.google.com/sre/book/chapters/monitoring-distributed-systems.html -->
 				<section data-markdown>
 					<script type="text/template">
 						## RED
 						
-						- follow Four Golden Signals by Google SREs
-						- focues on what matters for end-users
-<small>Latency, Traffic, Errors, Saturation</small>
+						- Follow Four Golden Signals by Google SREs [1]
+						- Focus on what matters for end-users
+
+<center><small>[1] Latency, Traffic, Errors, Saturation (<a href="https://landing.google.com/sre/book/chapters/monitoring-distributed-systems.html">src</a>)</small></center>
 					</script>
 				</section>
 				
@@ -167,28 +229,36 @@
  				</section>
 
 				<section>
-					<h3>Right Tool for the Job</h3>
+					<h3>My Weapons of choice</h3>
 					<ul>
 						<li>Prometheus</li>
 						<li>Alertmanager</li>
-						<li>Grafana (Optional)</li>
+						<li>Grafana</li>
+						<li>Not covered here: OpsGenie, StatusCake</li>
 					</ul>
-				</section>
-
-				<section>
-					<h3>What?</h3>
-					<img src="img/logo_prometheus.png" width="30%"/>
-					<img src="img/logo_grafana.png" width="30%"/>
 				</section>
 
 				<section data-markdown>
 					<script type="text/template">
 					## Prometheus
 					
-					- easy semantic
-					- large number of prometheus exporters
-					- focus on low TCO and simplicity
-					- powerful query and alarm rule language
+					- wide support for languages
+					- metrics collected over HTTP *metrics/*
+					- metrics in text
+					</script>
+				</section>
+
+				<section data-markdown>
+					<script type="text/template">
+					## Prometheus
+					
+					- Easy semantic
+					- Large number of prometheus exporters
+					- Focus on low TCO and simplicity
+					- Powerful query and alarm rule language
+					- Pull model [1]
+					
+<center><small>[1] I prefer it</small></center>
 					</script>
 				</section>
 
@@ -203,6 +273,56 @@
 					</script>
 				</section>
 
+				<section data-markdown>
+					<script type="text/template">
+					#### Simple REST service
+
+<pre><code>
+     -----------         ---------------
+    |    App    | ----->| Audit Service |
+    | OrderMgmt |       |               |
+     -----------         ---------------
+        |
+        |          ---------------
+         -------->|   Database    |
+                   ---------------</code></pre>
+					</script>
+				</section>
+
+				<section data-markdown>
+					<script type="text/template">
+					#### Simple REST service
+
+<pre><code class="bash" data-trim="" width="100%">curl 127.0.0.1:8080/hello
+curl 127.0.0.1:8080/world
+curl 127.0.0.1:8080/complex</code></pre>
+					</script>
+				</section>
+				
+				<section data-markdown>
+					<script type="text/template">
+					#### Simple REST service
+
+<pre><code class="bash" data-trim="" width="100%">
+curl 127.0.0.1:8080/complex?is_srv_error=True
+curl 127.0.0.1:8080/complex?is_db_error=True
+curl 127.0.0.1:8080/complex?db_sleep=3&srv_sleep=2
+</code></pre>
+					</script>
+				</section>
+
+				<section data-markdown>
+					<script type="text/template">
+					#### Operation endpoints
+
+<code>metrics/</code>
+
+Omited:
+- <i>health/</i>
+- <i>info/</li>
+- <i>alertrules/</i>
+					</script>
+				</section>
 
 				<section data-markdown>
 					<script type="text/template">
@@ -212,15 +332,25 @@
 					
 					</script>
 				</section>
+				
+				<section data-markdown>
+					<script type="text/template">
+						### Demo: Code
+						
+						- Metric definition
+						- Metric collection
+						- Exposing metrics <code>metrics/</code>
+					</script>
+				</section>
 
 				<section data-markdown>
 					<script type="text/template">
-					### Your service:
-
-					1. <i>metrics/</i>
-					2. <i>health/</i>
-					3. <i>info/</li>
-					4. <i>alertrules/</i> - PoC
+						### Demo: Prom Stack
+						
+						- Prometheus dashboard and config
+						- AlertManager dashboard and config
+						- Simulate the successful and failed calls
+						- Simple Queries for rate
 					</script>
 				</section>
 
@@ -228,8 +358,42 @@
 					<script type="text/template">
 					## Prometheus
 <pre><code class="yaml" data-trim="" width="100%">
-      sum(irate(order_mgmt_duration_seconds_count{job=~".*"}[1m])) by (status_code)</pre></code>
+sum(irate(order_mgmt_duration_seconds_count{job=~".*"}[1m]))
+   by (status_code)</pre></code>
 				</script>
+				</section>
+				
+				<section data-markdown>
+					<script type="text/template">
+					## Prometheus
+<pre><code class="yaml" data-trim="" width="100%">
+order_mgmt_duration_seconds_sum{job=~".*"} or 
+order_mgmt_database_duration_seconds_sum{job=~".*"} or
+order_mgmt_audit_duration_seconds_sum{job=~".*"}
+</code></pre>
+				</script>
+				</section>
+				
+				<section data-markdown>
+					<script type="text/template">
+						### Metric names
+
+						Which one is better?
+
+						- request_duration{app=my_app}
+						- my_app_request_duration
+					</script>
+				</section>
+				
+				<section data-markdown>
+					<script type="text/template">
+						### Metric names
+
+						Which one is better?
+
+						- order_mgmt_db_duration_seconds_sum
+						- order_mgmt_duration_seconds_sum{dep_name='db'}
+					</script>
 				</section>
 
 				<section>
@@ -247,9 +411,30 @@
 					<small>  - --web.metrics.prometheus</small>
 				</section>
 
-				<section>
-					<h1>Backup</h1>
+				<section data-markdown>
+					<script type="text/template">
+					### Next steps
+
+					- Extend the sample application with OpenZipkin
+					- In daily work, evaluating new: <a>linkerd.io</a>, <a>istio.io</a>, ...
+					</script>
 				</section>
+
+				<section>
+					<h3>Summary</h3>
+					<ul>
+						<li>Monitoring saves your time</li>
+						<li>Checking logs <b>Kibana</b> to check whether your component works is like debuging vs having tests</li>
+						<li>Logging -&gt; high TCO</li>
+					</ul>
+				</section>
+
+				<!--
+					BACKUP SLIDES
+				-->
+			<section data-background="img/smacc_header_IT_source.jpg" data-background-repeat="" data-background-size="100%" data-background-position="bottom" style="position: relative; top:0">
+				<h1>Backup Slides</h1>
+			</section>
 
 				<section>
 					<h5>Use Labels in Alert Rules</h5>
@@ -260,7 +445,8 @@
         summary = "Instance of {{$labels.app}} is down",
         description = " Instance  {{$labels.instance}} of app {{$labels.app}} has been down for more than 4 minutes"
    }</code></pre>
-				</section>
+   <small>see ../src/prometheus/etc/alert.rules</small>
+		 		</section>
 
 				<section>
 					<h5>Use Labels in Alert Routing</h5>
@@ -279,43 +465,16 @@ receivers:
   opsgenie_configs:
   - api_key: $API_KEY
     teams: example_team</code></pre>
-<small>AlertManager</small>
+   <small>see ../src/alertmanager/*.conf</small>
 </section>
 
-				<section data-markdown>
-					<script type="text/template">
-					### Next steps
-
-					- Tracing with OpenZipkin
-					- Evaluating new: <a>linkerd.io</a>, <a>istio.io</a>, ...
-					</script>
-				</section>
-
-				<section data-markdown>
-					<script type="text/template">
-					### Next steps
-
-					- More on our platfrom and OpenSource projects in one of the next meetups
-					
-<img src="img/smacc_wallpainting.jpg" width="60%">
-					</script>
-				</section>
-
-				<section>
-					<h3>Summary</h3>
-					<ul>
-						<li>Monitoring saves your time</li>
-						<li>Checking logs <b>Kibana</b> to check whether your component works is like debuging when you should gave tests</li>
-						<li>Logging -&gt; high TCO</li>
-					</ul>
-				</section>
 
 			<section data-background="img/smacc_header_IT_source.jpg" data-background-repeat="" data-background-size="100%" data-background-position="bottom" style="position: relative; top:0">
 				<h1>Thank you</h1>
 			</section>
 			
 			<section>
-				<h7>From our developers, Warsaw Office in BL Astoria:</h7>
+				<h7>Warsaw Office in BL Astoria:</h7>
 				<img src="img/smacc_we_are_hiring.jpg" />
 			</section>
 			
