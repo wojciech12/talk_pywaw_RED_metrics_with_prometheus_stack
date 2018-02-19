@@ -11,8 +11,7 @@ Notes
 
 ::
 
-  order_mgmt_duration_seconds_sum{job=~".*"} or order_mgmt_database_duration_seconds_sum{job=~".*"} or
-order_mgmt_audit_duration_seconds_sum{job=~".*"}
+  order_mgmt_duration_seconds_sum{job=~".*"} or order_mgmt_database_duration_seconds_sum{job=~".*"} or order_mgmt_audit_duration_seconds_sum{job=~".*"}
 
 
 - based on weave blog (https://www.weave.works/blog/of-metrics-and-middleware/):
@@ -42,12 +41,11 @@ order_mgmt_audit_duration_seconds_sum{job=~".*"}
     
       sum(irate(order_mgmt_duration_seconds_count{job=~".*", status_code=~"5.."}[1m]))
 
+ – will give you the 5-min moving 99th percentile request latency:
 
-  – will give you the 5-min moving 99th percentile request latency:
+   ::
 
-    ::
-
-      histogram_quantile(0.99, sum(rate(order_mgmt_duration_seconds_count{job=~".*",ws="false"}[5m])) by (le)) 
+     histogram_quantile(0.99, sum(rate(order_mgmt_duration_seconds_count{job=~".*",ws="false"}[5m])) by (le)) 
 
 Related Work
 ============
