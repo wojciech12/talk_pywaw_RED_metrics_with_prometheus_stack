@@ -47,6 +47,12 @@ Notes
 
       histogram_quantile(0.99, sum(rate(order_mgmt_duration_seconds_count{job=~".*",ws="false"}[5m])) by (le)) 
 
+ToDo
+====
+
+- Add grafana configuration files
+- Add load generator with wkr (beyond the simple calls, you will find in Makefile), use gunicorn to run the app.
+
 Related Work
 ============
 
