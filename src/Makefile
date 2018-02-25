@@ -1,5 +1,11 @@
 docker_build:
-	docker build -t wojciech12/talk-pywa-prom-flask .
+	docker-compose -f docker-compose.yaml --project-name talk-pywa-prom-flask build && \
+	docker tag talkpywapromflask_order-manager wojciech12/talk-pywa-prom-flask  
+
+run:
+	rm -rf multiproc-tmp && \
+	mkdir multiproc-tmp && \
+	gunicorn -c gunicorn_cfg.py --bind 0.0.0.0:8080 -w 1 wsgi:app
 
 start:
 	docker-compose -f docker-compose.yaml --project-name talk-pywa-prom-flask up -d
@@ -22,3 +28,6 @@ srv_random_trafic_complex_slow_db_and_svc:
 
 srv_random_trafic_complex_failed_third_party:
 	curl 127.0.0.1:8080/complex?is_srv_error=True
+
+srv_wrk_random:
+	 wrk -t8 -c12 -d360s -s tools/load_generator/mixed.lua http://127.0.0.1:8080

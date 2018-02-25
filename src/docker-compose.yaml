@@ -30,13 +30,16 @@ services:
     volumes:
       - ./alertmanager/:/etc/alertmanager/
     restart: always
-#  grafana:
-#    image: grafana/grafana
-#    ports:
-#      - 3000:3000
-#    environments:
-#      - "GF_SERVER_ROOT_URL=http:/127.0.0.1"
-#      - "GF_SECURITY_ADMIN_PASSWORD=secret"
-#    links:
-#      - prometheus:prometheus
-
+  grafana:
+    image: grafana/grafana
+    ports:
+      - 3000:3000
+    environment:
+      - "GF_SERVER_ROOT_URL=http://127.0.0.1"
+      - "GF_SECURITY_ADMIN_PASSWORD=secret"
+    links:
+      - prometheus:prometheus
+    volumes:
+      - ./grafana/data/:/var/lib/grafana
+      - ./grafana/etc/provisioning:/etc/grafana/provisioning/
+      - ./grafana/dashboards:/var/lib/grafana/dashboards

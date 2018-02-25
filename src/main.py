@@ -1,6 +1,7 @@
 from flask import Flask, Response
 from flask import request
-from prometheus_client import (Summary, generate_latest)
+from prometheus_client import (Summary, generate_latest, CollectorRegistry)
+from prometheus_client import multiprocess
 import ast
 import time
 
@@ -28,13 +29,14 @@ class MetricCollector:
         PATH = 'path'
         HTTP_METHOD = 'method'
 
-        # we could also collect the method when we have a REST interface
         about_me = Summary(prefix + "_duration_seconds",
                            service_name + " latency request distribution",
                            [PATH, HTTP_METHOD, STATUS_CODE])
+
         about_db = Summary(prefix + "_database_duration_seconds",
                            "database latency request distribution",
                            [STATUS_CODE, 'sql_state'])
+
         about_her = Summary(prefix + "_audit_duration_seconds",
                             "audit service latency request distribution",
                             [STATUS_CODE])
@@ -48,11 +50,6 @@ class MetricCollector:
 
 def get_collector(name):
     return MetricCollector.newCollector(name)
-
-
-def get_app():
-    app = Flask(__name__)
-    return app
 
 
 def add_routes(app,  collector):
@@ -87,7 +84,7 @@ def add_routes(app,  collector):
 def work_with_db(collector):
     start_time = time.time()
     
-    db_sleep = int(request.args.get("db_sleep", 0))
+    db_sleep = float(request.args.get("db_sleep", 0))
     is_db_error = ast.literal_eval(request.args.get("is_db_error", "False"))
         
     try:
@@ -108,7 +105,7 @@ def call_db(db_sleep, is_error):
 
 def work_with_third_party(collector):
     start_time = time.time()
-    srv_sleep = int(request.args.get("srv_sleep", 0))
+    srv_sleep = float(request.args.get("srv_sleep", 0))
     is_srv_error = ast.literal_eval(request.args.get("is_srv_error", "False"))
 
     try:
@@ -156,15 +153,29 @@ def instrument_requests(app, collector):
 def add_metrics_route(app, collector):
     @app.route('/metrics', strict_slashes=False, methods=['GET'])
     def metrics_rotue():
-        txt = generate_latest()
+        # txt = generate_latest()
+        txt = get_latest_when_running_with_gunicorn()
         return Response(txt, mimetype='text/plain')
 
+# you can skip *multiprocess_mode* if you do not need multiprocessing with gunicorn
+# see https://github.com/prometheus/client_python#multiprocess-mode-gunicorn
+def get_latest_when_running_with_gunicorn():
+    registry = CollectorRegistry()
+    multiprocess.MultiProcessCollector(registry)
+    return generate_latest(registry)
 
-if __name__ == "__main__":
-    app = get_app()
+
+def get_app():
+    app = Flask(__name__)
     c = get_collector('order-mgmt')
     add_routes(app, c)
     add_metrics_route(app, c)
     instrument_requests(app, c)
+    return app
+
+
+if __name__ == "__main__":
+    app = get_app()
     app.run(host='0.0.0.0',
             port=8080)
+
