@@ -65,7 +65,7 @@ def add_routes(app,  collector):
     def complex_operation():
         # getting data from db
         try:
-             work_with_db(collector)
+            work_with_db(collector)
         except RuntimeError as re:
             r = Response("{0}".format(re), mimetype='text/plain')
             r.status_code = 503
@@ -83,10 +83,10 @@ def add_routes(app,  collector):
 
 def work_with_db(collector):
     start_time = time.time()
-    
+
     db_sleep = float(request.args.get("db_sleep", 0))
     is_db_error = ast.literal_eval(request.args.get("is_db_error", "False"))
-        
+
     try:
         call_db(db_sleep, is_db_error)
         latency = time.time() - start_time
@@ -95,7 +95,7 @@ def work_with_db(collector):
         """
         """
         latency = time.time() - start_time
-        collector.observe_db('1001','HY000', latency)
+        collector.observe_db('1001', 'HY000', latency)
         raise re
 
 
@@ -157,7 +157,9 @@ def add_metrics_route(app, collector):
         txt = get_latest_when_running_with_gunicorn()
         return Response(txt, mimetype='text/plain')
 
-# you can skip *multiprocess_mode* if you do not need multiprocessing with gunicorn
+
+# you can skip *multiprocess_mode*
+# if you do not need multiprocessing with gunicorn
 # see https://github.com/prometheus/client_python#multiprocess-mode-gunicorn
 def get_latest_when_running_with_gunicorn():
     registry = CollectorRegistry()
@@ -178,4 +180,3 @@ if __name__ == "__main__":
     app = get_app()
     app.run(host='0.0.0.0',
             port=8080)
-
